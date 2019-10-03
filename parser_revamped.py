@@ -14,11 +14,10 @@ reading_ports=False
 reading_endmodule = False 
 reading_cells = False
 reading_wire = False
-input_flag=False #set to true when inputs are being parsed
-output=False # set to true when outputs are being parsed
-wire=False #set to true when wires are being parsed
-cells=False #set to true when cells are being parsed
-write=False # set to true when cells are being written to file
+# output=False # set to true when outputs are being parsed
+# wire=False #set to true when wires are being parsed
+# cells=False #set to true when cells are being parsed
+# write=False # set to true when cells are being written to file
 tempstring=' '
 strlist=[]
 #count=1000# please check if the max instance count (eg: BUFLTX1 U100 , 100 is the instance count), is lesser than count.
@@ -36,7 +35,7 @@ broken_line =''
 reading_comments = True
 assign_map={}
 nos_of_assign=0
-
+assign_set=[]
 print filelist[0]
 with open(filelist[0]) as infile:
 	for line in infile:
@@ -146,21 +145,6 @@ with open(filelist[0]) as infile:
 									wire_width[wire_name] = width
 									wire_list.append(wire_name);
 									reading_wire = False 
-					if "assign" in each_line and start_reading:
-						if('b0' not in line and 'b1' not in line):
-							st=each_line.strip().split(';')[0].split()
-							#print st
-							#templine='BUFX1 U'+str(count)+' ( .I1('+st[3]+'), .O('+st[1]+') );\n'
-							#tempstring=tempstring+templine.strip()
-							print "assign blocks"
-							print st
-							assign_map[st[1]] = st[3]
-							nos_of_assign=nos_of_assign+1
-									
-					elif ", ." in each_line and start_reading and reading_wire:
-						print each_line
-						reading_wire = False
-						start_reading = False				
 
 					elif reading_wire:#incase there are multiple lines of declaration
 						if ";" in each_line:# if declaration ends in this line
@@ -177,7 +161,41 @@ with open(filelist[0]) as infile:
 
 						for wire in wire_set_per_line:
 							if '\n' not in wire:
-								wire_list.append(wire.replace(" ",''))
+								wire_list.append(wire.replace(" ",''))				
+									
+					if "assign" in each_line and start_reading:
+						if('b0' not in line and 'b1' not in line):
+							st=each_line.strip().split(';')[0].split()
+							#print st
+							#templine='BUFX1 U'+str(count)+' ( .I1('+st[3]+'), .O('+st[1]+') );\n'
+							#tempstring=tempstring+templine.strip()
+							print "assign blocks"
+							print st
+							assign_map[st[1]] = st[3]
+							assign_set.append(st[1])
+							nos_of_assign=nos_of_assign+1
+									
+					elif ", ." in each_line and start_reading and reading_wire:
+						print each_line
+						reading_wire = False
+						start_reading = False				
+
+					# elif reading_wire:#incase there are multiple lines of declaration
+					# 	if ";" in each_line:# if declaration ends in this line
+					# 		reading_wire = False
+					# 		wire_set_per_line_temp = each_line.split(";")
+					# 		wire_set_per_line = wire_set_per_line_temp[0].split(",")
+					# 		if(len(wire_set_per_line) == 1) :#if only one wire instance is defined
+					# 			wire_list.append(wire_set_per_line[0].replace(" ",''))
+					# 	else :
+
+					# 		wire_set_per_line = each_line.split(",")
+					# 		# for wire in wire_set_per_line :
+					# 			# wire_list.append(wire.replace(" ",''))		
+
+					# 	for wire in wire_set_per_line:
+					# 		if '\n' not in wire:
+					# 			wire_list.append(wire.replace(" ",''))
 
 					
 			print("Input Width")
@@ -230,16 +248,17 @@ with open(filelist[0]) as infile:
 							for i in range (0,width):
 								if remaining_ports_to_be_written == 0 and i == width -1 :
 									
-									if tokens == "out":
-										outfile.write(tokens+"_"+str(i)+"\n);\n")	
-									else:
-										outfile.write(tokens+"_"+str(i)+"\n")
+									#if tokens == "out":
+										#outfile.write(tokens+"_"+str(i)+"\n);\n")
+										outfile.write(tokens+"_"+str(i)+"\n")	
+									#else:
+									# 	outfile.write(tokens+"_"+str(i)+"\n")
 										
 								else :	
 									outfile.write(tokens+"_"+str(i)+",\n")
 						else :
 							if remaining_ports_to_be_written == 0 :
-								outfile.write(tokens+"\n")
+								outfile.write(tokens+"\n);\n")
 							else :		
 								outfile.write(tokens+",\n")
 
@@ -251,7 +270,7 @@ with open(filelist[0]) as infile:
 			#succesfully prints the port lidt of the graph		 	
 
 			#writing the inputs 
-			outfile.write('//Start PIs\n')
+			outfile.write(');\n//Start PIs\n')
 
 			for i in input_list:
 				width = input_width[i]
@@ -323,13 +342,31 @@ with open(filelist[0]) as infile:
 
 				elif break_line == False and ";\n" :
 					outfile.write(line.replace(" [",'_').replace("[",'_').replace("]",'').replace('\\','_').replace('/','_'))
-						
+		
+
 		if "endmodule" in line :#checks for the endmodule
 			reading_cells=False
 			start_reading = False
+			if len(assign_set) == 0:
+				outfile.write("endmodule\n")
+			else :
+				last_tokens=last_line.split(" ")	
+				print "Last --- tokens "
+				print last_tokens
+				count=1
+				last_cell_count=int(last_tokens[3].replace("U",''))
+				for lhs in assign_set :
+					rhs = assign_map[lhs]
+					templine='  BUFCHD U'+str(last_cell_count+count)+' ( .I1('+lhs.replace("[",'_').replace("]",'')+'), .O('+rhs.replace("[",'_').replace("]",'')+') );\n'
+					outfile.write(templine)
+					count = count+1
 
-			outfile.write("endmodule\n")
+				outfile.write("endmodule\n")
+
+		if line !="\n":# keeps a track of the last line. Will be useful while adding the buffers for assign statements
+			last_line= line	
 
 		if reading_comments == True :
 			continue;
 	
+
