@@ -32,12 +32,40 @@ module tb_Circuit432 ();
   end
 
   always begin
-  #21.5 clk1<=~clk1;
+  #21.5 clk2<=~clk2;
 
   end
 
 
   assign clk = select?clk1:clk2;
+  
+  always 
+  begin	
+  #86 Ein<= 9'b111111111;
+    Ain<= 9'b000000010;
+    Bin<= 9'b000000001;
+    Cin<= 9'b000000000;
+  #86 Ein<= 9'b000000000;
+    Ain<= 9'b000000010;
+    Bin<= 9'b000000001;
+    Cin<= 9'b000000000;
+  
+  #86 Ein<= 9'b111111111;
+    Ain<= 9'b000000100;
+    Bin<= 9'b000000010;
+    Cin<= 9'b000000001;
 
+  #86 Ein<= 9'b000000000;
+    Ain<= 9'b000000100;
+    Bin<= 9'b000000010;
+    Cin<= 9'b000000001;
+
+  #86 Ein<= 9'b111111111;
+    Ain<= 9'b000001000;
+    Bin<= 9'b000000100;
+    Cin<= 9'b000000010;
+	  
+  end
+	
 
 endmodule /* Circuit432 */
