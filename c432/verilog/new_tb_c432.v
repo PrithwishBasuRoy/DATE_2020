@@ -1,3 +1,4 @@
+//`include "Ckt_432_synthesized.v"
 module tb_Circuit432 ();
 
   reg [8:0]    Ein,Ain,Bin,Cin;
@@ -5,7 +6,7 @@ module tb_Circuit432 ();
   wire [3:0]    Chan;
   reg clk,clk1,clk2,select;
   
-  TopLevel432 mod_1(.E_in(E_in), .A_in(A_in), .B_in(B_in), .C_in(C_in), .PA_out(PA), .PB_out(PB), .PC_out(PC), .Chan_out(Chan),.clk(clk));
+  TopLevel432 mod1(.E_in(Ein), .A_in(Ain), .B_in(Bin), .C_in(Cin), .PA_out(PA), .PB_out(PB), .PC_out(PC), .Chan_out(Chan),.clk(clk));
   initial
   begin
     $dumpfile("dump_c432.vcd");
@@ -20,8 +21,8 @@ module tb_Circuit432 ();
 
     Ein<= 9'b111111111;
     Ain<= 9'b000000010;
-    Bin<= 9'b000000001;
-    Cin<= 9'b000000000;
+    Bin<= 9'b000000010;
+    Cin<= 9'b000000010;
 
 
   end  
@@ -32,7 +33,7 @@ module tb_Circuit432 ();
   end
 
   always begin
-  #21.5 clk2<=~clk2;
+  #42.5 clk2<=~clk2;
 
   end
 
@@ -40,32 +41,53 @@ module tb_Circuit432 ();
   assign clk = select?clk1:clk2;
   
   always 
-  begin	
-  #86 Ein<= 9'b111111111;
+  begin 
+  #86 Ein<= 9'b111111101;
     Ain<= 9'b000000010;
-    Bin<= 9'b000000001;
-    Cin<= 9'b000000000;
+    Bin<= 9'b000000010;
+    Cin<= 9'b000000010;
   #86 Ein<= 9'b000000000;
     Ain<= 9'b000000010;
     Bin<= 9'b000000001;
     Cin<= 9'b000000000;
   
-  #86 Ein<= 9'b111111111;
+  #86 Ein<= 9'b000111100;
     Ain<= 9'b000000100;
-    Bin<= 9'b000000010;
-    Cin<= 9'b000000001;
+    Bin<= 9'b000000011;
+    Cin<= 9'b000000111;
 
-  #86 Ein<= 9'b000000000;
+  #86 Ein<= 9'b000000100;
     Ain<= 9'b000000100;
-    Bin<= 9'b000000010;
-    Cin<= 9'b000000001;
+    Bin<= 9'b000000011;
+    Cin<= 9'b000000100;
 
-  #86 Ein<= 9'b111111111;
-    Ain<= 9'b000001000;
+  #86 Ein<= 9'b000000011;
+    Ain<= 9'b000000111;
     Bin<= 9'b000000100;
-    Cin<= 9'b000000010;
-	  
+    Cin<= 9'b000000100;
+
+   select<=0;
+  #85 select <=1;
+ 	
+  #1 Ein<= 9'b000011011;
+    Ain<= 9'b000000111;
+    Bin<= 9'b000000100;
+    Cin<= 9'b000000100;
+
+  #86 Ein<= 9'b000010011;
+    Ain<= 9'b000000111;
+    Bin<= 9'b000000100;
+    Cin<= 9'b000000100;
+
+
+  #86 Ein<= 9'b000110011;
+    Ain<= 9'b000000111;
+    Bin<= 9'b000000100;
+    Cin<= 9'b000000100;
+
+
+  #500 $finish();    
   end
-	
+  
 
 endmodule /* Circuit432 */
